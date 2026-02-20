@@ -7,16 +7,16 @@ Converts Brainfuck code to any language
 import sys
 import json
 
-# デフォルトの命令マッピング（C言語）
+# デフォルトの命令マッピング
 DEFAULT_INSTRUCTIONS = {
-    '>': "ptr++; ",
-    '<': "ptr--; ",
-    '+': "(*ptr)++; ",
-    '-': "(*ptr)--; ",
-    '.': "putchar(*ptr); ",
-    ',': "*ptr=getchar(); ",
-    '[': "while(*ptr){ ",
-    ']': "} "
+    '>': "inc p\n",
+    '<': "dec p\n",
+    '+': "inc [p]\n",
+    '-': "dec [p]\n",
+    '.': "output\n",
+    ',': "input\n",
+    '[': "while *p\n",
+    ']': "wend\n"
 }
 
 def load_instructions(mapfile):
