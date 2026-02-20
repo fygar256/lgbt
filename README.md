@@ -1,3 +1,11 @@
+# General Brainfuck Transpiler
+
+This is bfac.py, the General Brainfuck Transpiler that converts Brainfuck into various languages.
+Line breaks can be added by adding `\n` after the command to be mapped.
+The converted source is output to standard output, so please redirect it with bfac.py file.bf>filename.ext.
+
+This covers all of Brainfuck's modified languages!
+
 # Sample
 
 ## C
