@@ -1,6 +1,6 @@
-# General Brainfuck Transpiler 'bfac.py'
+# Literal General Brainfuck Transpiler 'lgbt.py'
 
-This is the General Brainfuck Transpiler bfac.py, which converts Brainfuck to various languages.
+This is the Literal General Brainfuck Transpiler lgbt.py, which converts Brainfuck to various languages.
 
 I think this can translate to almost any language that has a while.
 
