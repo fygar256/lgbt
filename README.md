@@ -2,6 +2,8 @@
 
 This is the General Brainfuck Transpiler bfac.py, which converts Brainfuck to various languages.
 
+I think this can translate to almost any language that has a while.
+
 You can add line breaks by adding \n after the command you want to map.
 The converted source is output to standard output, so please redirect it with bfac.py file.bf>filename.ext.
 
