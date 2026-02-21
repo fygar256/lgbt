@@ -11,7 +11,9 @@ The converted source is output to standard output, so please redirect it with lg
 
 Transpiling from a high-level language to a lower-level language is generally difficult, but transpiling from a lower-level language to a higher-level language is easy.
 
-Indentation is also performed automatically, so conversion to Python is also possible. By default, lgbt.py converts to pseudo-assembly code. Specify the language to convert to using the map file described later. A header and footer will be required to run in the target language. Headers, footers, and map files for C and Python are provided.
+Indentation is also done automatically, so conversion to Python is also possible. Even if a single Brainfuck command spans multiple lines in the target language, it can be written with indentation by separating them with \n.
+
+By default, lgbt.py converts to pseudo-assembly code. Specify the language to convert to using the map file described later. A header and footer will be required to run in the target language. Headers, footers, and map files for C and Python are provided.
 
 # Sample
 
