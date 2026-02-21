@@ -37,13 +37,17 @@ a.out # Execution
 
 ## Python
 
+### Map file
+
+map.py.json
+
 ### Header file
 
 header.py
 
-### Map file
+### Tailor file
 
-map.py.json
+nothing
 
 ### Execution
 
