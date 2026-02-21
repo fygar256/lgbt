@@ -2,7 +2,7 @@
 
 This is the Literal General Brainfuck Transpiler lgbt.py, which converts Brainfuck to various languages.
 
-If there is a misunderstanding, it is no good so I explain that I am normal at sexuality.
+The filename 'lgbt' is a joke. If there is a misunderstanding, it is no good so I explain that I am normal at sexuality.
 
 I think this can translate to almost any language that has a while.
 
