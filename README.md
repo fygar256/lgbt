@@ -20,6 +20,26 @@ By default, lgbt.py converts to pseudo-assembly code. The language to convert to
 
 Headers and footers will be required to run in the target language. Headers, footers, and map files for C, Python, Ruby, assembly, and x86_64 FreeBSD are provided.
 
+The number of command line arguments and their interpretation are as follows:
+
+### For general-purpose languages
+```
+Number of arguments Interpretation
+1 <file.bf>
+2 <mapfile> <file.bf>
+3 <mapfile> <headerfile> <file.bf>
+4 <mapfile> <headerfile> <file.bf> <tailfile>
+```
+### For assembly language
+
+```
+Number  arguments Interpretation
+1 --asm <file.bf>
+2 --asm <mapfile> <file.bf>
+3 --asm <mapfile> <headerfile> <file.bf>
+4 --asm <mapfile> <headerfile> <file.bf> <tailfile>
+```
+
 # Sample
 
 ## C
