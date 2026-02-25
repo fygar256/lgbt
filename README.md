@@ -86,6 +86,17 @@ lgbt.py map.rb.json header.rb hello.bf > hello.rb
 ruby hello.rb
 ```
 
+# Assembly example x86_64
+
+Execution example
+
+```
+lgbt.py --asm map.amd64.json header.s hello.bf tailor.s > hello.s # Transform
+as hello.s -o hello.o # Assemble
+ld hello.o -o hello # Link
+./hello # Execute
+```
+
 By applying this, I think it can be used in a wide range of languages.
 
 Ook and other languages ​​are also supported.
