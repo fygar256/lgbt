@@ -1,19 +1,24 @@
-# Literal General Brainfuck Transpiler 'lgbt.py'
+# Literal General Brainfuck Transpiler
 
-This is the Literal General Brainfuck Transpiler lgbt.py, which converts Brainfuck to various languages.
+This is the Literal General Brainfuck Transpiler 'lgbt.py', which translates Brainfuck into various languages.
 
-The filename 'lgbt' is a joke. If there is a misunderstanding, it is no good so I explain that I am normal at sexuality.
+Just to avoid any misunderstandings about my name being LGBT, I'll state that I'm sexually normal.
 
-I think this can translate to almost any language that has a while.
+I believe it can translate any assembly language and almost any language that uses a while statement. While it doesn't work with languages ​​like BASIC, which use line numbers to indicate jump destinations, it can still translate if the statement uses a while statement.
 
-You can add line breaks by adding \n after the command you want to map.
-The converted source is output to standard output, so please redirect it with lgbt.py file.bf>filename.ext.
+Line breaks can be added by adding a \n after the target command.
 
-Transpiling from a high-level language to a lower-level language is generally difficult, but transpiling from a lower-level language to a higher-level language is easy.
+The resulting source code is output to standard output; redirect it as lgbt.py file.bf>filename.ext.
 
-Indentation is also done automatically, so conversion to Python is also possible. Even if a single Brainfuck command spans multiple lines in the target language, it can be written with indentation by separating them with \n.
+While transpiling from a high-level language to a lower-level language is generally difficult, transpiling from a lower-level language to a higher-level language is easy.
 
-By default, lgbt.py converts to pseudo-assembly code. Specify the language to convert to using the map file described later. A header and footer will be required to run in the target language. Headers, footers, and map files for C,Pascal, Python and Ruby are provided.
+When applied to general-purpose languages, indentation is automatically performed, so conversion to Python is also possible. Even if a single Brainfuck command spans multiple lines in the target language, you can write it with indentation by separating them with \n.
+
+When using assembly language, ']', '[' specified in the conversion destination string in the map file will be replaced with the corresponding ']', '[' label.
+
+By default, lgbt.py converts to pseudo-assembly code. The language to convert to can be specified in the map file described later.
+
+Headers and footers will be required to run in the target language. Headers, footers, and map files for C, Python, Ruby, assembly, and x86_64 FreeBSD are provided.
 
 # Sample
 
