@@ -14,7 +14,7 @@ While transpiling from a high-level language to a lower-level language is genera
 
 When applied to general-purpose languages, indentation is automatically performed, so conversion to Python is also possible. Even if a single Brainfuck command spans multiple lines in the target language, you can write it with indentation by separating them with \n.
 
-When using assembly language, ']', '[' specified in the conversion destination string in the map file will be replaced with the corresponding ']', '[' label.
+When using assembly language, ']', '[' specified in the conversion destination string in the map file will be replaced with the corresponding ']', '[' label.L GBT replaces only the last '[' or ']' in the destination string in the map file with the jump destination label, so it can also be used for assembly languages ​​that use '[]', such as ARM64.
 
 By default, lgbt.py converts to pseudo-assembly code. The language to convert to can be specified in the map file described later.
 
