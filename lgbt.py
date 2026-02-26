@@ -176,7 +176,8 @@ def convert_asm(filenameh, filename, filenamet, instructions):
             state['lf'] = '['
             label = _lsout(ls)
             print(f"LB{label}:")
-            new_text = text.replace(']', f" LE{label}")
+            s=f"LE{label}"
+            new_text = s.join(text.rsplit("]", 1))
             print(new_text)
 
         elif char == ']':
@@ -185,7 +186,8 @@ def convert_asm(filenameh, filename, filenamet, instructions):
                 ls.pop()
             state['lf'] = ']'
             label = _lsout(ls)
-            new_text = text.replace('[', f" LB{label}")
+            s=f"LB{label}"
+            new_text = s.join(text.rsplit("[", 1))
             print(new_text)
             print(f"LE{label}:")
 
