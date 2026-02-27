@@ -1,0 +1,10 @@
+{
+  ">": " (incf ptr)\n",
+  "<": " (decf ptr)\n",
+  "+": " (setf (aref tape ptr) (mod (1+ (aref tape ptr)) 256))\n",
+  "-": " (setf (aref tape ptr) (mod (1- (aref tape ptr)) 256))\n",
+  ".": " (write-char (code-char (aref tape ptr)))\n",
+  ",": " (let ((c (read-char nil nil nil))) (setf (aref tape ptr) (if c (char-code c) 0)))\n",
+  "[": " (loop while (/= (aref tape ptr) 0) do\n",
+  "]": " )\n"
+}
