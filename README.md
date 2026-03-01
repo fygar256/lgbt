@@ -1,28 +1,27 @@
 # Literal General Brainfuck Transpiler
+This is the Literal General Brainfuck Transpiler 'lgbt.py' that translates Brainfuck into various languages.
 
-This is the Literal General Brainfuck Transpiler 'lgbt.py', which translates Brainfuck into various languages.
+To avoid any misunderstandings about my name being LGBT, I'd like to state that I am sexually normal. Alan Turing, who died young, was homosexual.
 
-Just to avoid any misunderstandings about my name being LGBT, I'll state that I'm sexually normal.
+I believe it can be translated into any assembly language and almost any language that uses a while statement. While it may not be applicable to languages ​​like BASIC, which use line numbers to indicate jump destinations, it can still be translated if the statement uses a while statement.
 
-I believe it can translate any assembly language and almost any language that uses a while statement. While it doesn't work with languages ​​like BASIC, which use line numbers to indicate jump destinations, it can still translate if the statement uses a while statement.
+A newline can be added by adding a \n after the target command.
 
-Line breaks can be added by adding a \n after the target command.
+The translated source is output to standard output; redirect it as lgbt.py file.bf>filename.ext.
 
-The resulting source code is output to standard output; redirect it as lgbt.py file.bf>filename.ext.
+Transpiling from a high-level language to a lower-level language is generally difficult, but transpiling from a lower-level language to a higher-level language is easy. Brainfuck is the lowest-level language, so it can be translated into a variety of languages. Furthermore, since it is Turing complete, it has computational versatility, and all but specialized operations can be written in Brainfuck. It's not very practical, though.
 
-While transpiling from a high-level language to a lower-level language is generally difficult, transpiling from a lower-level language to a higher-level language is easy.
+When applied to general-purpose languages, indentation is automatic, making it possible to convert to Python. Even if a single Brainfuck command spans multiple lines in the target language, it can be written with indentation by separating them with \n.
 
-Brainfuck is the lowest level language, so it can be converted into any general language. It is also Turing complete, so it has universal computational power and all operations except for special operations can be written in Brainfuck. However, it is not practical.
+In assembly language, ']' and '[' specified in the destination string of the map file are replaced with the corresponding ']' and '[' labels. LGBT only replaces the last '[' or ']' in the destination string of the map file with the jump destination label, so it can also be used with assembly languages ​​that use '[]', such as ARM64.
 
-When applied to general-purpose languages, indentation is automatically performed, so conversion to Python is also possible. Even if a single Brainfuck command spans multiple lines in the target language, you can write it with indentation by separating them with \n.
+When performing label replacement, openlabel and closelabel in the destination string of the map file are replaced with the labels immediately before and after the corresponding '[' and ']', respectively.
 
-When using assembly language, ']', '[' specified in the conversion destination string in the map file will be replaced with the corresponding ']', '[' label. LGBT replaces only the last '[' or ']' in the destination string in the map file with the jump destination label, so it can also be used for assembly languages ​​that use '[]', such as ARM64.
+The label replacement mode --label is easier to understand than the assembly mode --asm.
 
-By default, lgbt.py converts to pseudo-assembly code. The language to convert to can be specified in the map file described later.
+By default, lgbt.py converts bf source to pseudo-assembly code. The language to convert to can be specified in the map file described later.
 
-Headers and footers will be required to run in the target language. Headers, footers, and map files for C, Python, Ruby,Common Lisp, and x86_64 asssembly for FreeBSD are provided.
-
-For converting to assembly language other than x86_64 on FreeBSD, please refer to the map, header, and tailor files for x86_64 on FreeBSD.
+Headers and footers will be required to run in the target language. Headers, footers, and map files for C, Python, Ruby, assembly, and x86_64 FreeBSD are provided.
 
 The number of command line arguments and their interpretation are as follows:
 
@@ -128,10 +127,19 @@ installation of sbcl required.
 
 # Assembly example x86_64
 
-Execution example
+Execution example (--asm)
 
 ```
 lgbt.py --asm map.amd64.json header.s hello.bf tailor.s > hello.s # Transform
+as hello.s -o hello.o # Assemble
+ld hello.o -o hello # Link
+./hello # Execute
+```
+
+Execution example (--label)
+
+```
+lgbt.py --label map.amd64_2.json header.s hello.bf tailor.s > hello.s # Transform
 as hello.s -o hello.o # Assemble
 ld hello.o -o hello # Link
 ./hello # Execute
