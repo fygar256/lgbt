@@ -1,0 +1,10 @@
+{
+    ">": "inc %rsi\n",
+    "<": "dec %rsi\n",
+    "+": "incb (%rsi)\n",
+    "-": "decb (%rsi)\n",
+    ".": "mov $4,%rax\nmov $1,%rdi\nmov $1,%rdx\nsyscall\n",
+    ",": "mov $3,%rax\nmov $0,%rdi\nmov $1,%rdx\nsyscall\n",
+    "[": "openlabel:\ncmpb $0,(%rsi)\njz closelabel\n",
+    "]": "jmp openlabel\ncloselabel:\n"
+}
