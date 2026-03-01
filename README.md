@@ -22,6 +22,8 @@ By default, lgbt.py converts to pseudo-assembly code. The language to convert to
 
 Headers and footers will be required to run in the target language. Headers, footers, and map files for C, Python, Ruby,Common Lisp, and x86_64 asssembly for FreeBSD are provided.
 
+For converting to assembly language other than x86_64 on FreeBSD, please refer to the map, header, and tailor files for x86_64 on FreeBSD.
+
 The number of command line arguments and their interpretation are as follows:
 
 ### For general-purpose languages
