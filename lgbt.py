@@ -73,11 +73,12 @@ class InstructionLoader:
         if missing:
             print(f"Warning: Missing keys in map file: {missing}", file=sys.stderr)
 
-        # リスト値は改行で結合して文字列に変換、文字列値は末尾に\nを付加
+        # リスト値は改行で結合して文字列に変換
+        # 文字列値は空文字列でない場合のみ末尾に\nを付加 [BUG2修正]
         for k, v in mapping.items():
             if isinstance(v, list):
                 mapping[k] = '\n'.join(str(e) for e in v) + '\n'
-            elif isinstance(v, str) and not v.endswith('\n'):
+            elif isinstance(v, str) and v != '' and not v.endswith('\n'):
                 mapping[k] = v + '\n'
 
         return mapping
@@ -105,9 +106,10 @@ class LoopLabelGenerator:
 
     def exit_loop(self) -> str:
         """']' を処理してラベル文字列を返す"""
-        label = self._format(self._stack)
+        # [BUG1修正] ポップを先に行ってからラベルを取得する
         if self._last_direction == ']':
             self._stack.pop()
+        label = self._format(self._stack)
         self._last_direction = ']'
         return label
 
