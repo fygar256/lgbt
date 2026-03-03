@@ -10,27 +10,24 @@ Usage (generic mode):
   lgbt.py <mapfile> <headerfile> <file.bf>
   lgbt.py <mapfile> <headerfile> <file.bf> <tailfile>
 
-Usage (assembly mode):
-  lgbt.py --asm <file.bf>
-  lgbt.py --asm <mapfile> <file.bf>
-  lgbt.py --asm <mapfile> <headerfile> <file.bf>
-  lgbt.py --asm <mapfile> <headerfile> <file.bf> <tailfile>
-
 Usage (label mode):
   lgbt.py --label <file.bf>
   lgbt.py --label <mapfile> <file.bf>
   lgbt.py --label <mapfile> <headerfile> <file.bf>
   lgbt.py --label <mapfile> <headerfile> <file.bf> <tailfile>
 
-In assembly mode, the map values for '[' and ']' may contain ']' and '['
-as placeholders respectively; these are replaced with generated loop labels.
 """
 
 import sys
 import json
+from abc import ABC, abstractmethod
 
-# デフォルトの命令マッピング（汎用モード）
-DEFAULT_INSTRUCTIONS = {
+
+# ---------------------------------------------------------------------------
+# デフォルト命令マッピング
+# ---------------------------------------------------------------------------
+
+DEFAULT_INSTRUCTIONS: dict[str, str] = {
     '>': "inc p\n",
     '<': "dec p\n",
     '+': "inc *p\n",
@@ -38,56 +35,115 @@ DEFAULT_INSTRUCTIONS = {
     '.': "output\n",
     ',': "input\n",
     '[': "while *p\n",
-    ']': "wend\n"
+    ']': "wend\n",
 }
 
-instructions = {}
 
-state = {'lf': '[', 'loopstack': []}
+# ---------------------------------------------------------------------------
+# 命令マッピングのロード
+# ---------------------------------------------------------------------------
 
-def load_instructions(mapfile):
-    """外部JSONファイルから命令マッピングを読み込む"""
-    if mapfile == '':
-        return DEFAULT_INSTRUCTIONS
-    try:
-        with open(mapfile, 'r') as fp:
-            mapping = json.load(fp)
-        required_keys = set('><+-.,[]')
-        missing = required_keys - set(mapping.keys())
-        if missing:
-            print(f"Warning: Missing keys in map file: {missing}", file=sys.stderr)
-        return mapping
-    except FileNotFoundError:
-        print(f"Error: Map file '{mapfile}' not found", file=sys.stderr)
-        sys.exit(1)
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON in map file: {e}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+class InstructionLoader:
+    """外部JSONファイルまたはデフォルトから命令マッピングを読み込む"""
 
-def print_file_raw(fp):
-    for ch in fp.read():
-        print(ch, end='')
+    REQUIRED_KEYS = set('><+-.,[]')
 
-def operationla(filenameh,filename,filenamet,bf_char):
-    if filenameh != '':
+    @classmethod
+    def load(cls, mapfile: str) -> dict[str, str]:
+        if mapfile == '':
+            return DEFAULT_INSTRUCTIONS
+        return cls._load_from_file(mapfile)
+
+    @classmethod
+    def _load_from_file(cls, mapfile: str) -> dict[str, str]:
         try:
-            with open(filenameh, 'r') as fp:
-                print_file_raw(fp)
+            with open(mapfile, 'r') as fp:
+                mapping: dict[str, str] = json.load(fp)
         except FileNotFoundError:
-            print(f"Error: File '{filenameh}' not found", file=sys.stderr)
+            print(f"Error: Map file '{mapfile}' not found", file=sys.stderr)
+            sys.exit(1)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in map file: {e}", file=sys.stderr)
             sys.exit(1)
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
-    if filename != '':
+        missing = cls.REQUIRED_KEYS - set(mapping.keys())
+        if missing:
+            print(f"Warning: Missing keys in map file: {missing}", file=sys.stderr)
+
+        # リスト値は改行で結合して文字列に変換、文字列値は末尾に\nを付加
+        for k, v in mapping.items():
+            if isinstance(v, list):
+                mapping[k] = '\n'.join(str(e) for e in v) + '\n'
+            elif isinstance(v, str) and not v.endswith('\n'):
+                mapping[k] = v + '\n'
+
+        return mapping
+
+
+# ---------------------------------------------------------------------------
+# ループラベルの生成ユーティリティ
+# ---------------------------------------------------------------------------
+
+class LoopLabelGenerator:
+    """ネストされたループ用のユニークなラベルを生成・管理する"""
+
+    def __init__(self) -> None:
+        self._stack: list[int] = []
+        self._last_direction: str = '['   # '[' or ']'
+
+    def enter_loop(self) -> str:
+        """'[' を処理してラベル文字列を返す"""
+        if self._last_direction == ']':
+            self._stack[-1] += 1
+        else:
+            self._stack.append(1)
+        self._last_direction = '['
+        return self._format(self._stack)
+
+    def exit_loop(self) -> str:
+        """']' を処理してラベル文字列を返す"""
+        label = self._format(self._stack)
+        if self._last_direction == ']':
+            self._stack.pop()
+        self._last_direction = ']'
+        return label
+
+    @staticmethod
+    def _format(stack: list[int]) -> str:
+        return (
+            str(stack)
+            .replace(', ', '_')
+            .replace('[', '')
+            .replace(']', '')
+        )
+
+
+# ---------------------------------------------------------------------------
+# トランスパイラ基底クラス
+# ---------------------------------------------------------------------------
+
+class BrainfuckTranspiler(ABC):
+    """Brainfuck トランスパイラの基底クラス"""
+
+    def __init__(self, instructions: dict[str, str]) -> None:
+        self.instructions = instructions
+
+    def transpile(self, headerfile: str, filename: str, tailfile: str) -> None:
+        """ヘッダ・本体・テールの順に出力する"""
+        self._print_file_raw(headerfile)
+        self._process_bf_file(filename)
+        self._print_file_raw(tailfile)
+
+    def _process_bf_file(self, filename: str) -> None:
+        if filename == '':
+            return
         try:
             with open(filename, 'r') as fp:
                 for char in fp.read():
-                    bf_char(char)
+                    self._handle_char(char)
         except FileNotFoundError:
             print(f"Error: File '{filename}' not found", file=sys.stderr)
             sys.exit(1)
@@ -95,238 +151,152 @@ def operationla(filenameh,filename,filenamet,bf_char):
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
-    if filenamet != '':
+    @abstractmethod
+    def _handle_char(self, char: str) -> None:
+        """1文字のBrainfuck命令を処理する"""
+
+    @staticmethod
+    def _print_file_raw(filename: str) -> None:
+        if filename == '':
+            return
         try:
-            with open(filenamet, 'r') as fp:
-                print_file_raw(fp)
+            with open(filename, 'r') as fp:
+                for ch in fp.read():
+                    print(ch, end='')
         except FileNotFoundError:
-            print(f"Error: File '{filenamet}' not found", file=sys.stderr)
+            print(f"Error: File '{filename}' not found", file=sys.stderr)
             sys.exit(1)
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
-def _lsout(loopstack):
-    """ループスタックをラベル名用の文字列に変換する"""
-    return str(loopstack).replace(', ', '_').replace('[', '').replace(']', '')
-
-def print_bf_char_asm(char):
-    global state
-    if char not in instructions:
-        return
-
-    text = instructions[char]
-
-    if char == '[':
-        ls = state['loopstack']
-        if state['lf'] == ']':
-                ls[-1] += 1
-        else:
-            ls.append(1)
-        state['lf'] = '['
-        label = _lsout(ls)
-        print(f"LB{label}:")
-        s=f"LE{label}"
-        new_text = s.join(text.rsplit("]", 1))
-        print(new_text)
-
-    elif char == ']':
-        ls = state['loopstack']
-        if state['lf'] == ']':
-            ls.pop()
-        state['lf'] = ']'
-        label = _lsout(ls)
-        s=f"LB{label}"
-        new_text = s.join(text.rsplit("[", 1))
-        print(new_text)
-        print(f"LE{label}:")
-
-    else:
-        print(text, end='')
-
-def print_bf_char_label(char):
-    global state
-    if char not in instructions:
-        return
-
-    text = instructions[char]
-
-    if char == '[':
-        ls = state['loopstack']
-        if state['lf'] == ']':
-            ls[-1] += 1
-        else:
-            ls.append(1)
-        state['lf'] = '['
-        label = _lsout(ls)
-        so=f"LB{label}"
-        sc=f"LE{label}"
-        text = text.replace("openlabel", so)
-        new_text = text.replace("closelabel", sc)
-        print(new_text)
-
-    elif char == ']':
-        ls = state['loopstack']
-        if state['lf'] == ']':
-            ls.pop()
-        state['lf'] = ']'
-        label = _lsout(ls)
-        so=f"LB{label}"
-        sc=f"LE{label}"
-        text = text.replace("openlabel", so)
-        new_text = text.replace("closelabel", sc)
-        print(new_text)
-
-    else:
-        print(text, end='')
 
 # ---------------------------------------------------------------------------
 # 汎用モード（インデント付き変換）
 # ---------------------------------------------------------------------------
 
-def emit(text, indent_level, indent_unit, at_line_start):
-    """テキストを出力する。改行のたびに次の行頭へインデントを挿入する。"""
-    for ch in text:
-        if at_line_start and ch not in ('\n', '\r'):
-            print(indent_unit * indent_level, end='')
-            at_line_start = False
-        print(ch, end='')
-        if ch == '\n':
-            at_line_start = True
-    return at_line_start
+class GenericTranspiler(BrainfuckTranspiler):
+    """インデントを管理しながら汎用変換を行うトランスパイラ"""
 
-def convert_generic(filenameh, filename, filenamet):
-    """汎用モード: インデントを管理しながら変換する"""
-    indent_unit = "    "
-    indent_chars = "["
-    dedent_chars = "]"
-    use_indent = bool(indent_unit)
+    INDENT_UNIT = "    "
+    INDENT_CHARS = frozenset('[')
+    DEDENT_CHARS = frozenset(']')
 
-    indent_level = 0
-    at_line_start = True
+    def __init__(self, instructions: dict[str, str]) -> None:
+        super().__init__(instructions)
+        self._indent_level = 0
+        self._at_line_start = True
 
-    def print_bf_char_generic(char, indent_level, at_line_start):
-        if char not in instructions:
-            return indent_level, at_line_start
+    def _handle_char(self, char: str) -> None:
+        if char not in self.instructions:
+            return
 
-        if use_indent and char in dedent_chars:
-            indent_level = max(0, indent_level - 1)
+        if char in self.DEDENT_CHARS:
+            self._indent_level = max(0, self._indent_level - 1)
 
-        text = instructions[char]
-        if use_indent:
-            at_line_start = emit(text, indent_level, indent_unit, at_line_start)
+        text = self.instructions[char]
+        self._emit(text)
+
+        if char in self.INDENT_CHARS:
+            self._indent_level += 1
+
+    def _emit(self, text: str) -> None:
+        for ch in text:
+            if self._at_line_start and ch not in ('\n', '\r'):
+                print(self.INDENT_UNIT * self._indent_level, end='')
+                self._at_line_start = False
+            print(ch, end='')
+            if ch == '\n':
+                self._at_line_start = True
+
+
+# ---------------------------------------------------------------------------
+# ラベルモード（openlabel / closelabel 置換）
+# ---------------------------------------------------------------------------
+
+class LabelTranspiler(BrainfuckTranspiler):
+    """命令文字列内の 'openlabel' / 'closelabel' を対応するラベルに置換するトランスパイラ"""
+
+    def __init__(self, instructions: dict[str, str]) -> None:
+        super().__init__(instructions)
+        self._label_gen = LoopLabelGenerator()
+
+    def _handle_char(self, char: str) -> None:
+        if char not in self.instructions:
+            return
+
+        text = self.instructions[char]
+
+        if char == '[':
+            label = self._label_gen.enter_loop()
+        elif char == ']':
+            label = self._label_gen.exit_loop()
         else:
             print(text, end='')
+            return
 
-        if use_indent and char in indent_chars:
-            indent_level += 1
+        open_label = f"LB{label}"
+        close_label = f"LE{label}"
+        replaced = text.replace("openlabel", open_label).replace("closelabel", close_label)
+        print(replaced)
 
-        return indent_level, at_line_start
-
-    if filenameh != '':
-        try:
-            with open(filenameh, 'r') as fp:
-                print_file_raw(fp)
-        except FileNotFoundError:
-            print(f"Error: File '{filenameh}' not found", file=sys.stderr)
-            sys.exit(1)
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
-
-    if filename != '':
-        try:
-            with open(filename, 'r') as fp:
-                for char in fp.read():
-                    print_bf_char_generic(char,indent_level,at_line_start)
-        except FileNotFoundError:
-            print(f"Error: File '{filename}' not found", file=sys.stderr)
-            sys.exit(1)
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
-
-    if filenamet != '':
-        try:
-            with open(filenamet, 'r') as fp:
-                print_file_raw(fp)
-        except FileNotFoundError:
-            print(f"Error: File '{filenamet}' not found", file=sys.stderr)
-            sys.exit(1)
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
 
 # ---------------------------------------------------------------------------
-# アセンブリモード（ループラベル生成）
+# コマンドライン引数のパース
 # ---------------------------------------------------------------------------
 
+class ArgumentParser:
+    """コマンドライン引数を解析してトランスパイラを構築するクラス"""
 
-def convert_asm(filenameh, filename, filenamet):
-    """アセンブリモード: '[' / ']' にループラベルを生成して変換する"""
+    MODES = {
+        '--label': LabelTranspiler,
+    }
 
-    # ループラベル管理
+    def parse(self, argv: list[str]) -> tuple[BrainfuckTranspiler, str, str, str]:
+        """(transpiler, headerfile, filename, tailfile) を返す"""
+        args = argv[1:]
 
-    operationla(filenameh,filename,filenamet,print_bf_char_asm)
+        transpiler_cls = GenericTranspiler
+        if args and args[0] in self.MODES:
+            transpiler_cls = self.MODES[args[0]]
+            args = args[1:]
 
-# ---------------------------------------------------------------------------
-# ラベルモード（ループラベル生成）
-# ---------------------------------------------------------------------------
+        if len(args) not in (1, 2, 3, 4):
+            self._print_usage(argv[0])
+            sys.exit(1)
 
+        mapfile, headerfile, filename, tailfile = self._split_args(args)
+        instructions = InstructionLoader.load(mapfile)
+        return transpiler_cls(instructions), headerfile, filename, tailfile
 
-def convert_label(filenameh, filename, filenamet):
-    """'[' / ']' の'label'を対応する大括弧のラベルに置換して変換する"""
+    @staticmethod
+    def _split_args(args: list[str]) -> tuple[str, str, str, str]:
+        l = len(args)
+        if l == 1:
+            return '', '', args[0], ''
+        if l == 2:
+            return args[0], '', args[1], ''
+        if l == 3:
+            return args[0], args[1], args[2], ''
+        return args[0], args[1], args[2], args[3]
 
-    # ループラベル管理
-
-    operationla(filenameh,filename,filenamet,print_bf_char_label)
+    @staticmethod
+    def _print_usage(prog: str) -> None:
+        for flag in ('', '--label '):
+            print(f"Usage: {prog} {flag}<file.bf>", file=sys.stderr)
+            print(f"or   : {prog} {flag}<mapfile> <file.bf>", file=sys.stderr)
+            print(f"or   : {prog} {flag}<mapfile> <headerfile> <file.bf>", file=sys.stderr)
+            print(f"or   : {prog} {flag}<mapfile> <headerfile> <file.bf> <tailfile>", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
 # エントリポイント
 # ---------------------------------------------------------------------------
 
-def main():
-    args = sys.argv[1:]
-
-    # --asm or --label フラグの検出
-    asm_mode = False
-    label_mode = False
-    if args and args[0] == '--asm':
-        asm_mode = True
-        args = args[1:]
-    elif args and args[0] == '--label':
-        label_mode = True
-        args = args[1:]
-
-
-    l = len(args)
-    if l not in (1, 2, 3, 4):
-        prog = sys.argv[0]
-        print(f"Usage: {prog} [--asm|--label] <file.bf>", file=sys.stderr)
-        print(f"or   : {prog} [--asm|--label] <mapfile> <file.bf>", file=sys.stderr)
-        print(f"or   : {prog} [--asm|--label] <mapfile> <headerfile> <file.bf>", file=sys.stderr)
-        print(f"or   : {prog} [--asm|--label] <mapfile> <headerfile> <file.bf> <tailfile>", file=sys.stderr)
-        sys.exit(1)
-
-    if l == 1:
-        mapfile, filenameh, filename, filenamet = '', '', args[0], ''
-    elif l == 2:
-        mapfile, filenameh, filename, filenamet = args[0], '', args[1], ''
-    elif l == 3:
-        mapfile, filenameh, filename, filenamet = args[0], args[1], args[2], ''
-    else:  # l == 4
-        mapfile, filenameh, filename, filenamet = args[0], args[1], args[2], args[3]
-
-    global instructions
-    instructions = load_instructions(mapfile)
-
-    if asm_mode:
-        convert_asm(filenameh, filename, filenamet)
-    elif label_mode:
-        convert_label(filenameh, filename, filenamet)
-    else:
-        convert_generic(filenameh, filename, filenamet)
+def main() -> None:
+    parser = ArgumentParser()
+    transpiler, headerfile, filename, tailfile = parser.parse(sys.argv)
+    transpiler.transpile(headerfile, filename, tailfile)
 
 
 if __name__ == '__main__':

@@ -1,10 +1,19 @@
 {
-    ">": "inc %rsi\n",
-    "<": "dec %rsi\n",
-    "+": "incb (%rsi)\n",
-    "-": "decb (%rsi)\n",
-    ".": "mov $4,%rax\nmov $1,%rdi\nmov $1,%rdx\nsyscall\n",
-    ",": "mov $3,%rax\nmov $0,%rdi\nmov $1,%rdx\nsyscall\n",
-    "[": "cmpb $0,(%rsi)\njz ]\n",
-    "]": "jmp [\n"
+    ">": "inc %rsi",
+    "<": "dec %rsi",
+    "+": "incb (%rsi)",
+    "-": "decb (%rsi)",
+    ".": [  "mov $4,%rax",
+            "mov $1,%rdi",
+            "mov $1,%rdx",
+            "syscall" ],
+    ",": [  "mov $3,%rax",
+            "mov $0,%rdi",
+            "mov $1,%rdx",
+            "syscall" ],
+    "[": [  "openlabel:",
+            "cmpb $0,(%rsi)",
+            "jz closelabel" ],
+    "]": [  "jmp openlabel", 
+            "closelabel:" ]
 }
