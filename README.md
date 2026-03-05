@@ -119,6 +119,21 @@ sbcl --script hello.lisp
 
 installation of sbcl required.
 
+# Prolog
+header:header.pl
+
+tailor:tailor.pl
+
+map:map.pl.json
+
+### execution
+```
+lgbt.py map.pl.json header.pl hello.pl tailor.pl >hello.pl
+swipl hello.pl
+```
+
+installation swi-prolog required.
+
 # Assembly example x86_64
 
 ```
