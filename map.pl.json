@@ -1,0 +1,10 @@
+{
+    ">": "inc_ptr,\n",
+    "<": "dec_ptr,\n",
+    "+": "inc_cell,\n",
+    "-": "dec_cell,\n",
+    ".": "out_cell,\n",
+    ",": "in_cell,\n",
+    "[": "call(( repeat, ( bf_cell_nonzero -> (\n",
+    "]": "true, fail ) ; ! ) )),\n"
+}
