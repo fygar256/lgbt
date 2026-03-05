@@ -132,7 +132,7 @@ lgbt.py map.pl.json header.pl hello.pl tailor.pl >hello.pl
 swipl hello.pl
 ```
 
-installation swi-prolog required.
+installation of swi-prolog required.
 
 # Assembly example x86_64
 
