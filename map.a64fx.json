@@ -1,0 +1,10 @@
+{
+    ">": "add x19, x19, #1\n",
+    "<": "sub x19, x19, #1\n",
+    "+": "ldrb w0, [x19]\nadd w0, w0, #1\nstrb w0, [x19]\n",
+    "-": "ldrb w0, [x19]\nsub w0, w0, #1\nstrb w0, [x19]\n",
+    ".": "mov x0, #1\nmov x1, x19\nmov x2, #1\nmov x8, #64\nsvc #0\n",
+    ",": "mov x0, #0\nmov x1, x19\nmov x2, #1\nmov x8, #63\nsvc #0\n",
+    "[": "openlabel:\nldrb w0, [x19]\ncbz w0, closelabel\n",
+    "]": "b openlabel\ncloselabel:\n"
+}
