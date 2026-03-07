@@ -15,7 +15,7 @@ When replacing labels, the openlabel and closelabel in the destination string in
 
 By default, lgbt.py converts bf source to pseudo-assembly code. The language to convert to is specified in the map file, which will be introduced later.
 
-Headers and footers will be required to run in the target language. Headers, footers, and map files for Cobol, C, Python, Ruby, lisp, Prolog, and assembly for x86_64 FreeBSD are provided.
+Headers and footers will be required to run in the target language. Headers, footers, and map files for Cobol, C, Python, Ruby, lisp, Prolog, and assembly for x86_64 on FreeBSD and for AArch64 on Fugaku are provided.
 
 The number of command line arguments and their interpretation are as follows:
 
