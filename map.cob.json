@@ -1,0 +1,10 @@
+{
+    ">": "ADD 1 TO PTR\n",
+    "<": "SUBTRACT 1 FROM PTR\n",
+    "+": "ADD 1 TO TAPE(PTR)\n",
+    "-": "SUBTRACT 1 FROM TAPE(PTR)\n",
+    ".": "DISPLAY FUNCTION CHAR(TAPE(PTR) + 1) WITH NO ADVANCING\n",
+    ",": "ACCEPT TAPE(PTR)\n",
+    "[": "PERFORM WITH TEST BEFORE UNTIL TAPE(PTR) = 0\n",
+    "]": "END-PERFORM\n"
+}
