@@ -41,17 +41,11 @@ Number  arguments Interpretation
 
 ## C
 
-### Map file
+Map file:map.c.json
 
-map.c.json
+Header:header.c
 
-### Header
-
-header.c
-
-### Tailor
-
-tailor.c
+Tailor:tailor.c
 
 ### Execution
 
@@ -63,17 +57,11 @@ a.out # Execution
 
 ## Python
 
-### Map file
+Map file:map.py.json
 
-map.py.json
+Header file:header.py
 
-### Header file
-
-header.py
-
-### Tailor file
-
-nothing
+Tailor file:nothing
 
 ### Execution
 
@@ -84,17 +72,11 @@ python hello.py
 
 ## Ruby
 
-### Map file
+Map file:map.rb.json
 
-map.rb.json
+Header file:header.rb
 
-### Header file
-
-header.rb
-
-### Tailor file
-
-nothing
+Tailor file:nothing
 
 ### Execution
 
@@ -141,6 +123,12 @@ lgbt.py --label map.amd64.json header.s hello.bf tailor.s > hello.s # Transform
 as hello.s -o hello.o # Assemble
 ld hello.o -o hello # Link
 ./hello # Execute
+```
+
+# Assembly of aarch64 (Fugaku super computer)
+
+```
+lgbt.py --label map.aarch64.json header.aarch64.s mandelbrot.bf tailor.aarch64.s > mandelbrot.aarch64.s
 ```
 
 By applying this, I think it can be used in a wide range of languages.
