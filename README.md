@@ -129,6 +129,7 @@ ld hello.o -o hello # Link
 
 ```
 lgbt.py --label map.aarch64.json header.aarch64.s mandelbrot.bf tailor.aarch64.s > mandelbrot.aarch64.s
+llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64.s -o mandelbrot.aarch64.o
 ```
 
 By applying this, I think it can be used in a wide range of languages.
