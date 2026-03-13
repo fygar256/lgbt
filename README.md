@@ -1,40 +1,30 @@
 # Literal General Brainfuck Transpiler
-Literal General Brainfuck Transpiler
-This is the Literal General Brainfuck Transpiler 'lgbt.py' that translates Brainfuck into various languages.
-To avoid any misunderstandings about my name being LGBT, I would like to state that I am sexually normal. Alan Turing, who died young, was homosexual.
+This is 'lgbt.py', a Literal General Brainfuck Transpiler that converts Brainfuck to various languages.
 
-This should be able to translate any language that jumps to labels (e.g., assembly language) and almost any language that has a while statement. While it may not be applicable to languages ​​that use line numbers to indicate the jump destination, like early BASIC, it can still be translated if it has a while statement or a label jump.
+I want to clarify that, just because the name is LGBT, there might be misunderstandings, so I'm sexually normal. Alan Turing, who died young, was homosexual.
 
-The resulting source code is output to standard output; please redirect it as lgbt.py file.bf>filename.ext.
+I believe it can convert to languages ​​that jump to any label (for example, assembly language) and almost any language with a while loop. It probably won't work for languages ​​that use line numbers to indicate jump destinations, like early BASIC, but it can still convert if there's a while loop or label jumps.
 
-Transpiling from a high-level language to a lower-level language is generally difficult, but transpiling from a lower-level language to a higher-level language is easy. Brainfuck is the lowest-level language, so it can be translated into a wide range of languages. Furthermore, since it is Turing complete, it is computationally universal, and all but specialized operations can be written in Brainfuck. It's not practical, though.
+The source code of the conversion result is output to standard output, so please redirect it using `lgbt.py file.bf>filename.ext`.
 
-When applied to general-purpose languages, indentation is automatic, making it possible to convert to Python. Even if a single Brainfuck command spans multiple lines in the target language, it can be written as a JSON list.
+Generally, transpiling from a high-level language to a lower-level language is difficult, but transpiling from a lower-level language to a higher-level language is easy if you allow for some redundancy. Brainfuck is the lowest-level language, so it can be converted to almost any language. Furthermore, since it is Turing complete, it possesses computational versatility, and almost everything except special operations can be written in Brainfuck. Though it's not very practical.
 
-When replacing labels, the openlabel and closelabel in the destination string in the map file are replaced with the labels immediately before and after the corresponding '[',']'.
+Automatic indentation is also handled, making conversion to Python possible. Even if a single Brainfuck instruction spans multiple lines in the target language, it can be written as a JSON list.
 
-By default, lgbt.py converts bf source to pseudo-assembly code. The language to convert to is specified in the map file, which will be introduced later.
+In the target strings of the map file, `openlabel` and `closelabel` are replaced with the labels immediately before and after the corresponding `[']'` and `']' positions, respectively.
 
-Headers and footers will be required to run in the target language. Headers, footers, and map files for Cobol, C, Python, Ruby, lisp, Prolog, and assembly for x86_64 on FreeBSD and for AArch64(A64FX) on Fugaku are provided.
+By default, `lgbt.py` converts BF sources to pseudo-assembly code. Specify the language to convert to using the map file, which will be discussed later.
 
-The number of command line arguments and their interpretation are as follows:
+Headers and footers will be necessary to run it in the target language system. Header, footer, and map files for C, Python, Ruby, assembly, and x86_64 FreeBSD are included.
 
-### For general-purpose languages
+The number and interpretation of command-line arguments are as follows:
+
 ```
 Number of arguments Interpretation
 1 <file.bf>
 2 <mapfile> <file.bf>
 3 <mapfile> <headerfile> <file.bf>
 4 <mapfile> <headerfile> <file.bf> <tailfile>
-```
-### For labeling language
-
-```
-Number  arguments Interpretation
-1 --label <file.bf>
-2 --label <mapfile> <file.bf>
-3 --label <mapfile> <headerfile> <file.bf>
-4 --label <mapfile> <headerfile> <file.bf> <tailfile>
 ```
 
 # Sample
