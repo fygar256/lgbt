@@ -4,18 +4,13 @@
 Brainfuck Transpiler
 Converts Brainfuck code to any language.
 
-Usage (generic mode):
+Usage:
   lgbt.py <file.bf>
   lgbt.py <mapfile> <file.bf>
   lgbt.py <mapfile> <headerfile> <file.bf>
   lgbt.py <mapfile> <headerfile> <file.bf> <tailfile>
 
-Usage (label mode):
-  lgbt.py --label <file.bf>
-  lgbt.py --label <mapfile> <file.bf>
-  lgbt.py --label <mapfile> <headerfile> <file.bf>
-  lgbt.py --label <mapfile> <headerfile> <file.bf> <tailfile>
-
+openlabel / closelabel in the map file are replaced with unique loop labels.
 """
 
 import sys
@@ -174,11 +169,11 @@ class BrainfuckTranspiler(ABC):
 
 
 # ---------------------------------------------------------------------------
-# 汎用モード（インデント付き変換）
+# 統合トランスパイラ（インデント付き変換 + openlabel / closelabel 置換）
 # ---------------------------------------------------------------------------
 
-class GenericTranspiler(BrainfuckTranspiler):
-    """インデントを管理しながら汎用変換を行うトランスパイラ"""
+class Transpiler(BrainfuckTranspiler):
+    """インデント管理と openlabel / closelabel 置換を同時に行うトランスパイラ"""
 
     INDENT_UNIT = "    "
     INDENT_CHARS = frozenset('[')
@@ -188,6 +183,7 @@ class GenericTranspiler(BrainfuckTranspiler):
         super().__init__(instructions)
         self._indent_level = 0
         self._at_line_start = True
+        self._label_gen = LoopLabelGenerator()
 
     def _handle_char(self, char: str) -> None:
         if char not in self.instructions:
@@ -197,6 +193,14 @@ class GenericTranspiler(BrainfuckTranspiler):
             self._indent_level = max(0, self._indent_level - 1)
 
         text = self.instructions[char]
+
+        if char == '[':
+            label = self._label_gen.enter_loop()
+            text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
+        elif char == ']':
+            label = self._label_gen.exit_loop()
+            text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
+
         self._emit(text)
 
         if char in self.INDENT_CHARS:
@@ -213,55 +217,15 @@ class GenericTranspiler(BrainfuckTranspiler):
 
 
 # ---------------------------------------------------------------------------
-# ラベルモード（openlabel / closelabel 置換）
-# ---------------------------------------------------------------------------
-
-class LabelTranspiler(BrainfuckTranspiler):
-    """命令文字列内の 'openlabel' / 'closelabel' を対応するラベルに置換するトランスパイラ"""
-
-    def __init__(self, instructions: dict[str, str]) -> None:
-        super().__init__(instructions)
-        self._label_gen = LoopLabelGenerator()
-
-    def _handle_char(self, char: str) -> None:
-        if char not in self.instructions:
-            return
-
-        text = self.instructions[char]
-
-        if char == '[':
-            label = self._label_gen.enter_loop()
-        elif char == ']':
-            label = self._label_gen.exit_loop()
-        else:
-            print(text, end='')
-            return
-
-        open_label = f"LB{label}"
-        close_label = f"LE{label}"
-        replaced = text.replace("openlabel", open_label).replace("closelabel", close_label)
-        print(replaced)
-
-
-# ---------------------------------------------------------------------------
 # コマンドライン引数のパース
 # ---------------------------------------------------------------------------
 
 class ArgumentParser:
     """コマンドライン引数を解析してトランスパイラを構築するクラス"""
 
-    MODES = {
-        '--label': LabelTranspiler,
-    }
-
     def parse(self, argv: list[str]) -> tuple[BrainfuckTranspiler, str, str, str]:
         """(transpiler, headerfile, filename, tailfile) を返す"""
         args = argv[1:]
-
-        transpiler_cls = GenericTranspiler
-        if args and args[0] in self.MODES:
-            transpiler_cls = self.MODES[args[0]]
-            args = args[1:]
 
         if len(args) not in (1, 2, 3, 4):
             self._print_usage(argv[0])
@@ -269,7 +233,7 @@ class ArgumentParser:
 
         mapfile, headerfile, filename, tailfile = self._split_args(args)
         instructions = InstructionLoader.load(mapfile)
-        return transpiler_cls(instructions), headerfile, filename, tailfile
+        return Transpiler(instructions), headerfile, filename, tailfile
 
     @staticmethod
     def _split_args(args: list[str]) -> tuple[str, str, str, str]:
@@ -284,11 +248,10 @@ class ArgumentParser:
 
     @staticmethod
     def _print_usage(prog: str) -> None:
-        for flag in ('', '--label '):
-            print(f"Usage: {prog} {flag}<file.bf>", file=sys.stderr)
-            print(f"or   : {prog} {flag}<mapfile> <file.bf>", file=sys.stderr)
-            print(f"or   : {prog} {flag}<mapfile> <headerfile> <file.bf>", file=sys.stderr)
-            print(f"or   : {prog} {flag}<mapfile> <headerfile> <file.bf> <tailfile>", file=sys.stderr)
+        print(f"Usage: {prog} <file.bf>", file=sys.stderr)
+        print(f"or   : {prog} <mapfile> <file.bf>", file=sys.stderr)
+        print(f"or   : {prog} <mapfile> <headerfile> <file.bf>", file=sys.stderr)
+        print(f"or   : {prog} <mapfile> <headerfile> <file.bf> <tailfile>", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
