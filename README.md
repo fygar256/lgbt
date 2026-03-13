@@ -109,7 +109,7 @@ installation of swi-prolog required.
 # Assembly example x86_64
 
 ```
-lgbt.py --label map.amd64.json header.s hello.bf tailor.s > hello.s # Transform
+lgbt.py map.amd64.json header.s hello.bf tailor.s > hello.s # Transform
 as hello.s -o hello.o # Assemble
 ld hello.o -o hello # Link
 ./hello # Execute
@@ -118,7 +118,7 @@ ld hello.o -o hello # Link
 # Assembly of aarch64 (Fugaku super computer)
 
 ```
-lgbt.py --label map.aarch64.json header.aarch64.s mandelbrot.bf tailor.aarch64.s > mandelbrot.aarch64.s
+lgbt.py map.aarch64.json header.aarch64.s mandelbrot.bf tailor.aarch64.s > mandelbrot.aarch64.s
 llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64.s -o mandelbrot.aarch64.o
 ```
 
