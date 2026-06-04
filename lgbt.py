@@ -215,13 +215,19 @@ class Transpiler(BrainfuckTranspiler):
         elif char == ']':
             label = self._label_gen.exit_loop()
             
+            # 【修正箇所】空ループ `[]` 対策
+            # 行番号モードのとき、もし `]` の出力直前の行番号が `[` と同じインデックス（空ループ）なら、
+            # ジャンプ先を確保するためにダミーの空コマンド（改行）をバッファに挟む
+            if self._use_line_numbers and self._open_line_indices.get(label) == len(self._lines):
+                self._emit("\n") # 現在の行を終了させ、次の空行を作る
+
             text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
             text = text.replace("openline", f"__OL_{label}__").replace("closeline", f"__CL_{label}__")
 
         self._emit(text)
 
         if char == ']':
-            # `]` の出力が終わった直後の行を closeline として記録
+            # `]` の出力が終わった直後の行（次に実行される命令の行）を closeline として記録
             self._close_line_indices[label] = len(self._lines)
 
         if char in self.INDENT_CHARS:
