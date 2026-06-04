@@ -218,8 +218,10 @@ class Transpiler(BrainfuckTranspiler):
             # 【修正箇所】空ループ `[]` 対策
             # 行番号モードのとき、もし `]` の出力直前の行番号が `[` と同じインデックス（空ループ）なら、
             # ジャンプ先を確保するためにダミーの空コマンド（改行）をバッファに挟む
-            if self._use_line_numbers and self._open_line_indices.get(label) == len(self._lines):
-                self._emit("\n") # 現在の行を終了させ、次の空行を作る
+            if (self._use_line_numbers and 
+                char == ']' and 
+                self._open_line_indices.get(label) == len(self._lines)):
+                self._emit("REM empty loop\n")  # または何らかのnop命令("\n") # 現在の行を終了させ、次の空行を作る
 
             text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
             text = text.replace("openline", f"__OL_{label}__").replace("closeline", f"__CL_{label}__")
