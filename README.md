@@ -1,21 +1,24 @@
 # Literal General Brainfuck Transpiler
+
 This is 'lgbt.py', a Literal General Brainfuck Transpiler that converts Brainfuck to various languages.
 
-I want to clarify that, just because the name is LGBT, there might be misunderstandings, so I'm sexually normal. Alan Turing, who died young, was homosexual.
+I want to clarify that, just because the name is LGBT, there might be some misunderstanding, so I'm sexually normal. Alan Turing, who died young, was homosexual.
 
-I believe it can convert to languages ​​that jump to any label (for example, assembly language) and almost any language with a while loop. It probably won't work for languages ​​that use line numbers to indicate jump destinations, like early BASIC, but it can still convert if there's a while loop or label jumps.
+I believe it can convert to languages ​​that jump to any label (for example, assembly language) and almost any language with a while loop. It can also be applied to languages ​​that use line numbers to indicate jump destinations, like early BASIC.
 
-The source code of the conversion result is output to standard output, so please redirect it using `lgbt.py file.bf>filename.ext`.
+The source code of the conversion result is output to standard output, so please use it by redirecting it as lgbt.py file.bf>filename.ext.
 
 Generally, transpiling from a high-level language to a lower-level language is difficult, but transpiling from a lower-level language to a higher-level language is easy if you allow for some redundancy. Brainfuck is the lowest-level language, so it can be converted to almost any language. Furthermore, since it is Turing complete, it possesses computational versatility, and almost everything except special operations can be written in Brainfuck. Though it's not very practical.
 
-Automatic indentation is also handled, making conversion to Python possible. Even if a single Brainfuck instruction spans multiple lines in the target language, it can be written as a JSON list.
+It also automatically handles indentation, making conversion to Python possible. Even if a single Brainfuck instruction spans multiple lines in the target language, it can be written as a JSON list.
 
-In the target strings of the map file, `openlabel` and `closelabel` are replaced with the labels immediately before and after the corresponding `[']'` and `']' positions, respectively.
+In the map file's target strings, `openlabel` and `closelabel` are replaced with the labels immediately before and after the corresponding `[',']` positions, respectively. `openline` and `closeline` are replaced with the line numbers of the corresponding `[',']` positions, respectively, with the line number at the `['` position and the line number after the `]` position.
 
-By default, `lgbt.py` converts BF sources to pseudo-assembly code. Specify the language to convert to using the map file, which will be discussed later.
+If the `openline` token exists in the map file, line numbers are automatically added to the output.
 
-Headers and footers will be necessary to run it in the target language system. Header, footer, and map files for C, Python, Ruby, assembly, and x86_64 FreeBSD are included.
+By default, `lgbt.py` converts BF source code to pseudo-assembly code. Specify the language to convert to in the map file, which will be discussed later.
+
+Headers and footers will likely be necessary for it to run in the target language system. It includes C, Python, Ruby, and bwbasic, as well as assembly files and headers, footers, and map files for x86_64 FreeBSD.
 
 The number and interpretation of command-line arguments are as follows:
 
