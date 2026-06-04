@@ -1,0 +1,10 @@
+{
+    ">": "ptr=ptr+1",
+    "<": "ptr=ptr-1",
+    "+": "array(ptr)=(array(ptr)+1) mod 256",
+    "-": "array(ptr)=(array(ptr)-1) mod 256",
+    ".": "print(chr$(array(ptr)));",
+    ",": "input a$:array(ptr)=asc(a$)",
+    "[": "if array(ptr)=0 then goto closeline",
+    "]": "goto openline"
+}
