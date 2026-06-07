@@ -206,31 +206,30 @@ class Transpiler(BrainfuckTranspiler):
 
         if char == '[':
             label = self._label_gen.enter_loop()
-            # `[` の出力が開始される行を openline として記録
-            self._open_line_indices[label] = len(self._lines)
             
             text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
             text = text.replace("openline", f"__OL_{label}__").replace("closeline", f"__CL_{label}__")
+            
+            # Emit the '[' instruction first
+            self._emit(text)
+            # Record the CURRENT line index as openline (the line with the if/goto for '[')
+            self._open_line_indices[label] = len(self._lines) - 1 if self._lines else 0
             
         elif char == ']':
             label = self._label_gen.exit_loop()
             
-            # 【修正箇所】空ループ `[]` 対策
-            # 行番号モードのとき、もし `]` の出力直前の行番号が `[` と同じインデックス（空ループ）なら、
-            # ジャンプ先を確保するためにダミーの空コマンド（改行）をバッファに挟む
-            if (self._use_line_numbers and 
-                char == ']' and 
-                self._open_line_indices.get(label) == len(self._lines)):
-                self._emit("REM empty loop\n")  # または何らかのnop命令("\n") # 現在の行を終了させ、次の空行を作る
-
             text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
             text = text.replace("openline", f"__OL_{label}__").replace("closeline", f"__CL_{label}__")
 
-        self._emit(text)
-
-        if char == ']':
-            # `]` の出力が終わった直後の行（次に実行される命令の行）を closeline として記録
+            # Emit the ']' instruction
+            self._emit(text)
+            # For closeline: point to the line *after* this ']' instruction
+            # This is crucial for empty loops `[]`
             self._close_line_indices[label] = len(self._lines)
+            
+        else:
+            # For other commands, just emit
+            self._emit(text)
 
         if char in self.INDENT_CHARS:
             self._indent_level += 1
@@ -255,6 +254,11 @@ class Transpiler(BrainfuckTranspiler):
     def transpile(self, headerfile: str, filename: str, tailfile: str) -> None:
         """ヘッダ・本体・テールの順にバッファリングし、最後に行番号を解決してフラッシュする"""
         self._print_file_raw(headerfile)
+        # Ensure header's last line is completed if it didn't end with newline
+        if self._current_line:
+            self._lines.append("".join(self._current_line))
+            self._current_line = []
+            self._at_line_start = True
         self._process_bf_file(filename)
         self._print_file_raw(tailfile)
         self._flush()
@@ -266,7 +270,7 @@ class Transpiler(BrainfuckTranspiler):
             self._current_line = []
 
         if self._use_line_numbers:
-            # 100から始まり10飛ばしの行番号を生成（ファイルの終端にジャンプするケースも考慮して +1 しておく）
+            # 100から始まり10飛ばしの行番号を生成
             line_numbers = {i: 100 + i * 10 for i in range(len(self._lines) + 1)}
 
             for i, line in enumerate(self._lines):
