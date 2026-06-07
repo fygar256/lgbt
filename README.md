@@ -125,6 +125,52 @@ lgbt.py map.aarch64.json header.aarch64.s mandelbrot.bf tailor.aarch64.s > mande
 llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64.s -o mandelbrot.aarch64.o
 ```
 
+
+### Example of line number jump (bwbasic)
+
+Map file
+
+```json: map.bwbasic.json
+{
+">": "ptr=ptr+1",
+"<": "ptr=ptr-1",
+"+": "array(ptr)=(array(ptr)+1) mod 256",
+"-": "array(ptr)=(array(ptr)-1) mod 256",
+".": "print chr$(array(ptr));",
+",": [ "do",
+" a$=inkey$",
+"loop while a$=\"\"",
+"array(ptr)=asc(a$)" ],
+"[": "if array(ptr)=0 then goto closeline",
+
+"]": "goto openline"
+}
+```
+
+Header file
+```text:header.bwbasic
+dim array(30000)
+ptr=0
+```
+
+Tailor file
+```text:tailor.bwbasic
+end
+```
+
+Execution
+```
+lgbt.py map.bwbasic.json header.bwbasic hello.bf tailor.bwbasic>hello.bwbasic
+bwbasic hello.bwbasic
+Hello world!
+```
+
+Also, it seems that bwbasic can have issues like this. (Gemini)
+
+3. [Important] Bugs specific to bwbasic (empty PRINT and consecutive execution)
+A bug has been reported in bwbasic (especially older versions and certain builds) where, if certain processing is performed immediately after a PRINT statement, or if PRINT is repeated rapidly within a loop, extra line breaks (empty lines) are inserted due to a problem with the internal buffer processing.
+
 By applying this, I think it can be used in a wide range of languages.
 
 Ook and other languages ​​are also supported.
+
