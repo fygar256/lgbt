@@ -103,7 +103,7 @@ map:map.pl.json
 
 ### execution
 ```
-lgbt.py map.pl.json header.pl hello.pl tailor.pl >hello.pl
+lgbt.py map.pl.json header.pl hello.bf tailor.pl >hello.pl
 swipl hello.pl
 ```
 
