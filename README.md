@@ -109,6 +109,22 @@ swipl hello.pl
 
 installation of swi-prolog required.
 
+## haskell
+
+Map file:map.hs.json
+
+Header:header.hs
+
+Tailor:tailor.hs
+
+### Execution
+
+```
+lgbt.py map.hs.json header.hs mandelbrot.bf tailor.hs>out.hs # Convert to Haskell
+ghc out.hs -o out # Compile
+out # Execution
+```
+
 # Assembly example x86_64
 
 ```
