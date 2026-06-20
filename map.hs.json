@@ -1,0 +1,10 @@
+{
+    ">": "modifyIORef' ptr (+ 1);",
+    "<": "modifyIORef' ptr (subtract 1);",
+    "+": "adjust 1;",
+    "-": "adjust (-1);",
+    ".": "output;",
+    ",": "input;",
+    "[": "whileNonZero $ do {",
+    "]": "return () };"
+}
