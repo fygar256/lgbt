@@ -149,8 +149,8 @@ ld hello.o -o hello # Link
 # Assembly of aarch64 (Fugaku super computer)
 
 ```
-lgbt.py aarch64 mandelbrot.bf > mandelbrot.aarch64.s
-llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64.s -o mandelbrot.aarch64.o
+lgbt.py aarch64 mandelbrot.bf > mandelbrot.aarch64
+llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64 -o mandelbrot.aarch64.o
 ```
 
 
