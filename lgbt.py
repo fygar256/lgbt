@@ -4,15 +4,18 @@ Brainfuck Transpiler
 Converts Brainfuck code to any language.
 
 Usage:
-  lgbt.py <file.bf>
-  lgbt.py <mapfile> <file.bf>
-  lgbt.py <mapfile> <headerfile> <file.bf>
-  lgbt.py <mapfile> <headerfile> <file.bf> <tailfile>
+  lgbt.py <suffix> <file.bf>
+
+<suffix> selects the target files:
+  map.<suffix>.json   (required; error if missing)
+  header.<suffix>     (optional; treated as empty if missing)
+  tailor.<suffix>     (optional; treated as empty if missing)
 
 openlabel / closelabel in the map file are replaced with unique loop labels.
 openline / closeline are replaced with line numbers for line-based languages.
 """
 import sys
+import os
 import json
 from abc import ABC, abstractmethod
 
@@ -299,32 +302,38 @@ class ArgumentParser:
     """コマンドライン引数を解析してトランスパイラを構築するクラス"""
     def parse(self, argv: list[str]) -> tuple[BrainfuckTranspiler, str, str, str]:
         args = argv[1:]
-        if len(args) not in (1, 2, 3, 4):
+        # `lgbt.py <suffix> <file.bf>` の2引数のみを受け付ける。
+        # （`lgbt.py <file.bf>` のデフォルト形式は廃止）
+        if len(args) != 2:
             self._print_usage(argv[0])
             sys.exit(1)
 
-        mapfile, headerfile, filename, tailfile = self._split_args(args)
+        suffix, filename = args
+        mapfile = f"map.{suffix}.json"
+        headerfile = f"header.{suffix}"
+        tailfile = f"tailor.{suffix}"
+
+        # map ファイルは必須。なければエラー終了。
+        if not os.path.isfile(mapfile):
+            print(f"Error: Map file '{mapfile}' not found", file=sys.stderr)
+            sys.exit(1)
+
+        # header / tailor は任意。なければ空（出力なし）として扱う。
+        if not os.path.isfile(headerfile):
+            headerfile = ''
+        if not os.path.isfile(tailfile):
+            tailfile = ''
+
         instructions = InstructionLoader.load(mapfile)
 
         return Transpiler(instructions), headerfile, filename, tailfile
 
     @staticmethod
-    def _split_args(args: list[str]) -> tuple[str, str, str, str]:
-        l = len(args)
-        if l == 1:
-            return '', '', args[0], ''
-        if l == 2:
-            return args[0], '', args[1], ''
-        if l == 3:
-            return args[0], args[1], args[2], ''
-        return args[0], args[1], args[2], args[3]
-
-    @staticmethod
     def _print_usage(prog: str) -> None:
-        print(f"Usage: {prog} <file.bf>", file=sys.stderr)
-        print(f"or   : {prog} <mapfile> <file.bf>", file=sys.stderr)
-        print(f"or   : {prog} <mapfile> <headerfile> <file.bf>", file=sys.stderr)
-        print(f"or   : {prog} <mapfile> <headerfile> <file.bf> <tailfile>", file=sys.stderr)
+        print(f"Usage: {prog} <suffix> <file.bf>", file=sys.stderr)
+        print(f"  example: {prog} py hello.bf", file=sys.stderr)
+        print(f"  uses map.<suffix>.json (required), "
+              f"header.<suffix> / tailor.<suffix> (optional)", file=sys.stderr)
 
 # ---------------------------------------------------------------------------
 # エントリポイント
