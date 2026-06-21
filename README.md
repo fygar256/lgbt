@@ -1,35 +1,47 @@
-# Literal General Brainfuck Transpiler
+---
+title: General-Purpose Brainfuck Transpiler 'lgbt.py'
+tags: Brainf*ck Python C Terminal Transpiler
+author: fygar256
+slide: false
+---
+
+Literal General Brainfuck Transpiler
 
 This is 'lgbt.py', a Literal General Brainfuck Transpiler that converts Brainfuck to various languages.
 
-I want to clarify that, just because the name is LGBT, there might be some misunderstanding, so I'm sexually normal. Alan Turing, who died young, was homosexual.
+I want to clarify that, just because the name is LGBT, there might be some misunderstanding, so I'm normal in terms of sexuality. Alan Turing, who died young, was homosexual.
 
-I believe it can convert to languages ​​that jump to any label (for example, assembly language) and almost any language with a while loop. It can also be applied to languages ​​that use line numbers to indicate jump destinations, like early BASIC.
+I believe it can convert to languages ​​that jump to any label (for example, assembly language) and almost any language with `while` loops. It can also be applied to languages ​​that use line numbers to indicate jump destinations, like early BASIC.
 
-The source code of the conversion result is output to standard output, so please use it by redirecting it as lgbt.py file.bf>filename.ext.
+The source code of the conversion result is output to standard output, so please use redirection with `lgbt.py file.bf>filename.ext`.
 
-Generally, transpiling from a high-level language to a lower-level language is difficult, but transpiling from a lower-level language to a higher-level language is easy if you allow for some redundancy. Brainfuck is the lowest-level language, so it can be converted to almost any language. Furthermore, since it is Turing complete, it possesses computational versatility, and almost everything except special operations can be written in Brainfuck. Though it's not very practical.
+Generally, transpiling from a high-level language to a lower-level language is difficult, but transpiling from a lower-level language to a higher-level language is easy if you can tolerate some redundancy. Brainfuck is the lowest-level language, so it can be translated into virtually any language. Furthermore, it is Turing complete, possessing computational versatility; almost everything except special operations can be written in Brainfuck. Though it's not very practical.
 
 It also automatically handles indentation, making conversion to Python possible. Even if a single Brainfuck instruction spans multiple lines in the target language, it can be written as a JSON list.
 
-In the map file's target strings, `openlabel` and `closelabel` are replaced with the labels immediately before and after the corresponding `[',']` positions, respectively. `openline` and `closeline` are replaced with the line numbers of the corresponding `[',']` positions, respectively, with the line number at the `['` position and the line number after the `]` position.
+For languages ​​that use labels, such as assembly, `openlabel` and `closelabel` in the map file's target string are replaced with the labels immediately before and after the corresponding '[',']' positions, respectively.
 
-If the `openline` token exists in the map file, line numbers are automatically added to the output.
+In languages ​​that use line numbers to indicate jump destinations, such as early BASIC, `openline` and `closeline` are replaced with the line numbers at the position of the corresponding `[` and `]`, respectively.
 
-By default, `lgbt.py` converts BF source code to pseudo-assembly code. Specify the language to convert to in the map file, which will be discussed later.
+If the `openline` token exists in the map file, line numbers will be automatically added to the output.
 
-Headers and footers will likely be necessary for it to run in the target language system. It includes C, Python, Ruby, and bwbasic, as well as assembly files and headers, footers, and map files for x86_64 FreeBSD.
+To run lgbt.py, you need a mapfile, headerfile, and tailorfile for each language.
 
-The number and interpretation of command-line arguments are as follows:
+The naming convention for each file is as follows:
 
 ```
-Number of arguments Interpretation
-1 <file.bf>
-2 <mapfile> <file.bf>
-3 <mapfile> <headerfile> <file.bf>
-4 <mapfile> <headerfile> <file.bf> <tailfile>
+map.suffix.json # mapfile
+header.suffix # headerfile
+tailor.suffix # tailorfile
 ```
 
+For sample and practical use, headers, footers, and map files for C, Python, Ruby, bwbasic, assembly, and x86_64 FreeBSD are included.
+
+The command-line arguments and their interpretation are as follows:
+
+```
+lgbt.py <suffix> <file.bf>
+```
 # Sample
 
 ## C
@@ -43,7 +55,7 @@ Tailor:tailor.c
 ### Execution
 
 ```
-lgbt.py map.c.json header.c mandelbrot.bf tailor.c>out.c # Convert to C
+lgbt.py c mandelbrot.bf >out.c # Convert to C
 cc out.c # Compile
 a.out # Execution
 ```
@@ -59,7 +71,7 @@ Tailor file:nothing
 ### Execution
 
 ```
-lgbt.py map.py.json header.py hello.bf > hello.py
+lgbt.py py hello.bf > hello.py
 python hello.py
 ```
 
@@ -74,7 +86,7 @@ Tailor file:nothing
 ### Execution
 
 ```
-lgbt.py map.rb.json header.rb hello.bf > hello.rb
+lgbt.py rb hello.bf > hello.rb
 ruby hello.rb
 ```
 
@@ -88,7 +100,7 @@ map:map.lisp.json
 ### execution
 
 ```
-lgbt.py map.lisp.json header.lisp hello.bf tailor.lisp > hello.lisp
+lgbt.py lisp hello.bf > hello.lisp
 sbcl --script hello.lisp
 ```
 
@@ -103,7 +115,7 @@ map:map.pl.json
 
 ### execution
 ```
-lgbt.py map.pl.json header.pl hello.bf tailor.pl >hello.pl
+lgbt.py pl hello.bf >hello.pl
 swipl hello.pl
 ```
 
@@ -120,7 +132,7 @@ Tailor:tailor.hs
 ### Execution
 
 ```
-lgbt.py map.hs.json header.hs mandelbrot.bf tailor.hs>out.hs # Convert to Haskell
+lgbt.py hs mandelbrot.bf >out.hs # Convert to Haskell
 ghc out.hs -o out # Compile
 out # Execution
 ```
@@ -128,7 +140,7 @@ out # Execution
 # Assembly example x86_64
 
 ```
-lgbt.py map.amd64.json header.s hello.bf tailor.s > hello.s # Transform
+lgbt.py s hello.bf > hello.s # Transform
 as hello.s -o hello.o # Assemble
 ld hello.o -o hello # Link
 ./hello # Execute
@@ -137,7 +149,7 @@ ld hello.o -o hello # Link
 # Assembly of aarch64 (Fugaku super computer)
 
 ```
-lgbt.py map.aarch64.json header.aarch64.s mandelbrot.bf tailor.aarch64.s > mandelbrot.aarch64.s
+lgbt.py aarch64 mandelbrot.bf > mandelbrot.aarch64.s
 llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64.s -o mandelbrot.aarch64.o
 ```
 
@@ -176,7 +188,7 @@ end
 
 Execution
 ```
-lgbt.py map.bwbasic.json header.bwbasic hello.bf tailor.bwbasic>hello.bwbasic
+lgbt.py bwbasic hello.bf >hello.bwbasic
 bwbasic hello.bwbasic
 Hello world!
 ```
