@@ -13,7 +13,7 @@ I want to clarify that, just because the name is LGBT, there might be some misun
 
 I believe it can convert to languages ​​that jump to any label (for example, assembly language) and almost any language with `while` loops. It can also be applied to languages ​​that use line numbers to indicate jump destinations, like early BASIC.
 
-The source code of the conversion result is output to standard output, so please use redirection with `lgbt.py file.bf>filename.ext`.
+The source code of the conversion result is output to standard output, so please use redirection with `lgbt.py suffix file.bf>filename.ext`.
 
 Generally, transpiling from a high-level language to a lower-level language is difficult, but transpiling from a lower-level language to a higher-level language is easy if you can tolerate some redundancy. Brainfuck is the lowest-level language, so it can be translated into virtually any language. Furthermore, it is Turing complete, possessing computational versatility; almost everything except special operations can be written in Brainfuck. Though it's not very practical.
 
