@@ -35,7 +35,7 @@ header.suffix # headerfile
 tailor.suffix # tailorfile
 ```
 
-For sample and practical use, headers, footers, and map files for C, Python, Ruby, bwbasic, assembly of x86_64 FreeBSD and so on are included.
+For sample and practical use, headers, footers, and map files for C, Python, Ruby, bwbasic, GAME language, assembly of x86_64 FreeBSD and so on are included.
 
 The command-line arguments and their interpretation are as follows:
 
