@@ -1,0 +1,10 @@
+{
+    ">": "p++;",
+    "<": "p--;",
+    "+": "tape[p]++;",
+    "-": "tape[p]--;",
+    ".": "System.out.write(tape[p] & 0xFF); System.out.flush();",
+    ",": "tape[p] = (byte) input();",
+    "[": "while (tape[p] != 0) {",
+    "]": "}"
+}
