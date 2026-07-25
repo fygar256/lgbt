@@ -22,7 +22,13 @@ openline / closeline are replaced with line numbers for line-based languages.
 import sys
 import os
 import json
+import re
 from abc import ABC, abstractmethod
+
+# ---------------------------------------------------------------------------
+# 行番号解決用プレースホルダ
+# ---------------------------------------------------------------------------
+_PLACEHOLDER_RE = re.compile(r"__(OL|CL)_([0-9_]+)__")
 
 # ---------------------------------------------------------------------------
 # デフォルト命令マッピング
@@ -220,10 +226,12 @@ class Transpiler(BrainfuckTranspiler):
             text = text.replace("openlabel", f"LB{label}").replace("closelabel", f"LE{label}")
             text = text.replace("openline", f"__OL_{label}__").replace("closeline", f"__CL_{label}__")
             
-            # Emit the '[' instruction first
+            # openline は '[' ブロックの *先頭* 行を指す。
+            # '[' のマップが複数行の場合、最終行を指すと戻りジャンプが
+            # 先頭行を読み飛ばしてしまうため、emit する前に記録する。
+            start_idx = len(self._lines)
             self._emit(text)
-            # Record the CURRENT line index as openline (the line with the if/goto for '[')
-            self._open_line_indices[label] = len(self._lines) - 1 if self._lines else 0
+            self._open_line_indices[label] = start_idx
             
         elif char == ']':
             label = self._label_gen.exit_loop()
@@ -261,6 +269,21 @@ class Transpiler(BrainfuckTranspiler):
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
+    def _lineno(self, index: int) -> int:
+        """バッファ内の行インデックスを出力行番号へ変換する"""
+        return 10 + index * self._line_step
+
+    def _resolve_placeholder(self, m: "re.Match[str]") -> str:
+        """__OL_<label>__ / __CL_<label>__ を行番号へ解決する
+
+        対応する '[' / ']' が見つからない（括弧が不均衡な）場合は、
+        従来どおりプレースホルダをそのまま残す。
+        """
+        table = (self._open_line_indices if m.group(1) == 'OL'
+                 else self._close_line_indices)
+        index = table.get(m.group(2))
+        return m.group(0) if index is None else str(self._lineno(index))
+
     def transpile(self, headerfile: str, filename: str, tailfile: str) -> None:
         """ヘッダ・本体・テールの順にバッファリングし、最後に行番号を解決してフラッシュする"""
         self._print_file_raw(headerfile)
@@ -280,23 +303,12 @@ class Transpiler(BrainfuckTranspiler):
             self._current_line = []
 
         if self._use_line_numbers:
-            # 10から始まり、-l<N>で指定した刻み幅で行番号を生成
-            line_numbers = {i: 10 + i * self._line_step for i in range(len(self._lines) + 1)}
-
+            # 行番号は 10 から始まり、-l<N> で指定した刻み幅で増える。
+            # プレースホルダは正規表現1回の走査で解決する（ラベル数に依存しない）。
             for i, line in enumerate(self._lines):
-                # プレースホルダが存在する場合のみ置換を試行
                 if "__OL_" in line or "__CL_" in line:
-                    for label, idx in self._open_line_indices.items():
-                        target = f"__OL_{label}__"
-                        if target in line:
-                            line = line.replace(target, str(line_numbers[idx]))
-                            
-                    for label, idx in self._close_line_indices.items():
-                        target = f"__CL_{label}__"
-                        if target in line:
-                            line = line.replace(target, str(line_numbers[idx]))
-
-                print(f"{line_numbers[i]} {line}")
+                    line = _PLACEHOLDER_RE.sub(self._resolve_placeholder, line)
+                print(f"{self._lineno(i)} {line}")
         else:
             # openline の指定がなければ元の挙動通り出力
             for line in self._lines:
