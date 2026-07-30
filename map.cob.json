@@ -1,10 +1,13 @@
 {
     ">": "ADD 1 TO PTR\n",
     "<": "SUBTRACT 1 FROM PTR\n",
-    "+": "ADD 1 TO TAPE(PTR)\n",
-    "-": "SUBTRACT 1 FROM TAPE(PTR)\n",
+    "+": "COMPUTE TAPE(PTR) = FUNCTION MOD(TAPE(PTR) + 1, 256)\n",
+    "-": "COMPUTE TAPE(PTR) = FUNCTION MOD(TAPE(PTR) - 1, 256)\n",
     ".": "DISPLAY FUNCTION CHAR(TAPE(PTR) + 1) WITH NO ADVANCING\n",
-    ",": "ACCEPT TAPE(PTR)\n",
-    "[": "PERFORM WITH TEST BEFORE UNTIL TAPE(PTR) = 0\n",
+    ",": [ "MOVE LOW-VALUE TO IN-CHAR",
+           "ACCEPT IN-CHAR",
+           "COMPUTE TAPE(PTR) = FUNCTION ORD(IN-CHAR) - 1" ],
+    "[": [ "PERFORM WITH TEST BEFORE UNTIL TAPE(PTR) = 0",
+           "    CONTINUE" ],
     "]": "END-PERFORM\n"
 }

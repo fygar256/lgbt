@@ -4,7 +4,7 @@
     "+": "(*ptr)++; ",
     "-": "(*ptr)--; ",
     ".": "putchar(*ptr); ",
-    ",": "*ptr=getchar(); ",
+    ",": "{ int c_=getchar(); *ptr=(c_==EOF)?0:c_; } ",
     "[": "while(*ptr){ ",
     "]": "}"
 }

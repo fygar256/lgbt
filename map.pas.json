@@ -4,7 +4,7 @@
   "+": "tape[ptr] := (tape[ptr] + 1) and 255;\n",
   "-": "tape[ptr] := (tape[ptr] - 1) and 255;\n",
   ".": "Write(Chr(tape[ptr]));\n",
-  ",": "tape[ptr] := Ord(ReadKey);\n",
+  ",": "if Eof(Input) then tape[ptr] := 0 else begin Read(inch); tape[ptr] := Ord(inch); end;\n",
   "[": "while tape[ptr] <> 0 do\nbegin\n",
   "]": "end;\n"
 }

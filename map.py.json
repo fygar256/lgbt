@@ -3,8 +3,11 @@
     "<": "ptr -= 1\n",
     "+": "tape[ptr] = (tape[ptr] + 1) & 0xFF\n",
     "-": "tape[ptr] = (tape[ptr] - 1) & 0xFF\n",
-    ".": "sys.stdout.write(chr(tape[ptr]))\n",
-    ",": "tape[ptr] = ord(sys.stdin.read(1))\n",
-    "[": "while tape[ptr]:\n",
+    ".": "sys.stdout.buffer.write(bytes([tape[ptr]]))\n",
+    ",": [ "sys.stdout.buffer.flush()",
+           "_c = sys.stdin.buffer.read(1)",
+           "tape[ptr] = _c[0] if _c else 0" ],
+    "[": [ "while tape[ptr]:",
+           "    pass" ],
     "]": ""
 }

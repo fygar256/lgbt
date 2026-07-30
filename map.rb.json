@@ -1,10 +1,12 @@
 {
     ">" : "ptr += 1\n",
     "<" : "ptr -= 1\n",
-    "+" : "tape[ptr] += 1\n",
-    "-" : "tape[ptr] -= 1\n",
+    "+" : "tape[ptr] = (tape[ptr] + 1) & 0xFF\n",
+    "-" : "tape[ptr] = (tape[ptr] - 1) & 0xFF\n",
     "." : "print tape[ptr].chr\n",
-    "," : "tape[ptr] = $stdin.getbyte\n",
+    "," : [ "$stdout.flush",
+            "_c = $stdin.getbyte",
+            "tape[ptr] = _c.nil? ? 0 : _c" ],
     "[" : "while tape[ptr] != 0\n",
     "]" : "end\n"
 }
