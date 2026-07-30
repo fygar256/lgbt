@@ -42,6 +42,20 @@ The command-line arguments and their interpretation are as follows:
 ```
 lgbt.py <suffix> <file.bf>
 ```
+
+# Included sample Brainfuck programs
+
+The following Brainfuck sources are bundled so that every example below can be
+run as written:
+
+```
+hello.bf      # prints "Hello, world!"
+alphabet.bf   # prints A-Z followed by a newline (exercises nested loops)
+echo.bf       # copies stdin to stdout until EOF (exercises ',')
+```
+
+`mandelbrot.bf` is a well-known third-party benchmark and is not bundled here;
+if you want to try it, fetch it separately and drop it in this directory.
 # Sample
 
 ## C
@@ -55,7 +69,7 @@ Tailor:tailor.c
 ### Execution
 
 ```
-lgbt.py c mandelbrot.bf >out.c # Convert to C
+lgbt.py c alphabet.bf >out.c # Convert to C
 cc out.c # Compile
 a.out # Execution
 ```
@@ -132,12 +146,17 @@ Tailor:tailor.hs
 ### Execution
 
 ```
-lgbt.py hs mandelbrot.bf >out.hs # Convert to Haskell
+lgbt.py hs alphabet.bf >out.hs # Convert to Haskell
 ghc out.hs -o out # Compile
 out # Execution
 ```
 
 # Assembly example x86_64
+
+## FreeBSD (`s`)
+
+`map.s.json` / `tailor.s` use the **FreeBSD** system call numbers
+(write=4, read=3, exit=1).
 
 ```
 lgbt.py s hello.bf > hello.s # Transform
@@ -146,11 +165,28 @@ ld hello.o -o hello # Link
 ./hello # Execute
 ```
 
-# Assembly of aarch64 (Fugaku super computer)
+## Linux (`s.linux`)
+
+`map.s.linux.json` / `header.s.linux` / `tailor.s.linux` are the same target
+with the **Linux** system call numbers (write=1, read=0, exit=60).
 
 ```
-lgbt.py aarch64 mandelbrot.bf > mandelbrot.aarch64
-llvm-mc -triple=aarch64-unknown-freebsd -filetype=obj mandelbrot.aarch64 -o mandelbrot.aarch64.o
+lgbt.py s.linux hello.bf > hello.s
+as hello.s -o hello.o
+ld hello.o -o hello
+./hello
+```
+
+# Assembly of aarch64
+
+`map.aarch64.json` and `tailor.aarch64` use the **Linux** aarch64 system call
+numbers (write=64, read=63, exit=93), so assemble them for a Linux target:
+
+```
+lgbt.py aarch64 alphabet.bf > alphabet.aarch64
+llvm-mc -triple=aarch64-unknown-linux -filetype=obj alphabet.aarch64 -o alphabet.aarch64.o
+ld alphabet.aarch64.o -o alphabet
+./alphabet
 ```
 
 
@@ -163,7 +199,7 @@ Map file
 ">": "ptr=ptr+1",
 "<": "ptr=ptr-1",
 "+": "array(ptr)=(array(ptr)+1) mod 256",
-"-": "array(ptr)=(array(ptr)-1) mod 256",
+"-": "array(ptr)=(array(ptr)+255) mod 256",
 ".": "print chr$(array(ptr));",
 ",": [ "do",
 " a$=inkey$",
@@ -197,6 +233,28 @@ Also, it seems that bwbasic can have issues like this. (Gemini)
 
 3. [Important] Bugs specific to bwbasic (empty PRINT and consecutive execution)
 A bug has been reported in bwbasic (especially older versions and certain builds) where, if certain processing is performed immediately after a PRINT statement, or if PRINT is repeated rapidly within a loop, extra line breaks (empty lines) are inserted due to a problem with the internal buffer processing.
+
+
+# Notes on writing your own map file
+
+* **Cell wrap-around.** Brainfuck cells are 8 bit and wrap. If the target
+  language does not wrap by itself, do it in the map, e.g. `& 0xFF`,
+  `mod 256`, or `and 255`. Beware of languages whose `mod` can return a
+  negative value: write `(x + 255) mod 256` for `-` instead of
+  `(x - 1) mod 256`.
+* **Byte in, byte out.** `.` must emit exactly one byte, not one character.
+  In Python, `chr(200)` is written out as two UTF-8 bytes, so use
+  `sys.stdout.buffer.write(bytes([...]))` instead. Likewise `,` should read
+  one *byte* from stdin.
+* **End of input.** The convention used by the bundled map files is that `,`
+  stores 0 when the input is exhausted.
+* **Empty loops.** `[]` is legal Brainfuck. In a language where an empty block
+  is a syntax error (Python, Common Lisp, COBOL), put a no-op such as `pass`,
+  `(values)` or `CONTINUE` in the `[` entry so that the body is never empty.
+* **`closeline` and the tailor file.** `closeline` resolves to the line *after*
+  the matching `]`. If the program ends with `]` and there is no tailor file,
+  that line does not exist; lgbt.py warns about this. Provide a tailor file
+  (even just a program terminator) for line-numbered targets.
 
 By applying this, I think it can be used in a wide range of languages.
 
