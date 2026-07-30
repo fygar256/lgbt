@@ -133,19 +133,54 @@ class BrainfuckTranspiler(ABC):
         self._process_bf_file(filename)
         self._print_file_raw(tailfile)
 
+    @staticmethod
+    def _validate_brackets(text: str, filename: str) -> None:
+        """'[' と ']' の対応を変換前に検査する。
+
+        不均衡なソースをそのまま変換すると、C のように後段のコンパイラが
+        捕まえてくれる言語ばかりではなく、アセンブリや行番号 BASIC では
+        黙って壊れた出力ができてしまう。ここで位置つきで報告して止める。
+        """
+        stack: list[tuple[int, int]] = []
+        line = 1
+        col = 0
+        for ch in text:
+            if ch == '\n':
+                line += 1
+                col = 0
+                continue
+            col += 1
+            if ch == '[':
+                stack.append((line, col))
+            elif ch == ']':
+                if not stack:
+                    print(f"Error: {filename}:{line}:{col}: unmatched ']'",
+                          file=sys.stderr)
+                    sys.exit(1)
+                stack.pop()
+        if stack:
+            oline, ocol = stack[-1]
+            print(f"Error: {filename}:{oline}:{ocol}: unmatched '['",
+                  file=sys.stderr)
+            sys.exit(1)
+
     def _process_bf_file(self, filename: str) -> None:
         if filename == '':
             return
         try:
             with open(filename, 'r') as fp:
-                for char in fp.read():
-                    self._handle_char(char)
+                text = fp.read()
         except FileNotFoundError:
             print(f"Error: File '{filename}' not found", file=sys.stderr)
             sys.exit(1)
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
+
+        self._validate_brackets(text, filename)
+
+        for char in text:
+            self._handle_char(char)
 
     @abstractmethod
     def _handle_char(self, char: str) -> None:
@@ -303,6 +338,15 @@ class Transpiler(BrainfuckTranspiler):
             self._current_line = []
 
         if self._use_line_numbers:
+            # closeline は「']' の次の行」を指すため、末尾が ']' で終わり
+            # tailor ファイルが無い場合、存在しない行番号への goto になる。
+            # 出力を書き換えずに済むよう、警告だけ出しておく。
+            if any(idx >= len(self._lines)
+                   for idx in self._close_line_indices.values()):
+                print("Warning: a 'closeline' jump target falls past the last "
+                      "output line; add a tailor.<suffix> file so the jump has "
+                      "a destination.", file=sys.stderr)
+
             # 行番号は 10 から始まり、-l<N> で指定した刻み幅で増える。
             # プレースホルダは正規表現1回の走査で解決する（ラベル数に依存しない）。
             for i, line in enumerate(self._lines):
@@ -396,7 +440,18 @@ class ArgumentParser:
 def main() -> None:
     parser = ArgumentParser()
     transpiler, headerfile, filename, tailfile = parser.parse(sys.argv)
-    transpiler.transpile(headerfile, filename, tailfile)
+    try:
+        transpiler.transpile(headerfile, filename, tailfile)
+        sys.stdout.flush()
+    except BrokenPipeError:
+        # `lgbt.py py x.bf | head` のように読み手が先に閉じた場合、
+        # トレースバックを出さずに静かに終了する。
+        try:
+            devnull = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(devnull, sys.stdout.fileno())
+        except OSError:
+            pass
+        sys.exit(0)
 
 if __name__ == '__main__':
     main()
